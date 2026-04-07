@@ -1,0 +1,85 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AI Construction Progress Monitor</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <style>
+        body { 
+            background-color: #f8f9fa; 
+            height: 100vh; 
+            display: flex; 
+            flex-direction: column; 
+        }
+        .hero-banner { 
+            background-color: #212529; 
+            color: white; 
+            padding: 60px 0; 
+            text-align: center;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+        }
+        .portal-card {
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+            cursor: pointer;
+            text-decoration: none;
+            color: inherit;
+            border: none;
+            border-radius: 12px;
+            overflow: hidden;
+        }
+        .portal-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 20px rgba(0,0,0,0.15);
+        }
+        .card-header-public { background-color: #198754; padding: 20px; color: white; }
+        .card-header-contractor { background-color: #0d6efd; padding: 20px; color: white; }
+    </style>
+</head>
+<body>
+
+    <div class="hero-banner">
+        <div class="container">
+            <h1 class="display-5 fw-bold mb-3">AI Construction Monitor</h1>
+            <p class="lead text-light opacity-75">Intelligent Site Tracking & Enterprise Financial Verification</p>
+        </div>
+    </div>
+
+    <div class="container flex-grow-1 d-flex align-items-center justify-content-center">
+        <div class="row w-100 justify-content-center gap-4">
+            
+            <div class="col-md-5 col-lg-4">
+                <a href="public.html" class="card portal-card bg-white shadow-sm h-100 d-block">
+                    <div class="card-header-public text-center">
+                        <h3 class="mb-0">Public Portal</h3>
+                    </div>
+                    <div class="card-body p-4 text-center">
+                        <h5 class="card-title text-success mb-3">Citizen & Client Access</h5>
+                        <p class="text-muted mb-4">Log in securely via Google to view verified financial ledgers, cumulative progress graphs, and authenticated site imagery.</p>
+                        <span class="btn btn-outline-success w-100 fw-bold">Enter Public Portal ➔</span>
+                    </div>
+                </a>
+            </div>
+
+            <div class="col-md-5 col-lg-4">
+                <a href="contractor.html" class="card portal-card bg-white shadow-sm h-100 d-block">
+                    <div class="card-header-contractor text-center">
+                        <h3 class="mb-0">Contractor Portal</h3>
+                    </div>
+                    <div class="card-body p-4 text-center">
+                        <h5 class="card-title text-primary mb-3">Builder & Admin Access</h5>
+                        <p class="text-muted mb-4">Log in with your secure Enterprise ID to upload site updates, submit invoices, and run AI Structural Density verification.</p>
+                        <span class="btn btn-outline-primary w-100 fw-bold">Enter Contractor Portal ➔</span>
+                    </div>
+                </a>
+            </div>
+
+        </div>
+    </div>
+
+    <footer class="text-center py-4 text-muted small">
+        <p class="mb-0">© 2026 AI Construction Analytics | Enterprise Grade Verification</p>
+    </footer>
+
+</body>
+</html>

@@ -1,0 +1,177 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Enterprise Portal | AI Construction</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css">
+    <style>
+        :root {
+            --primary: #2563eb;
+            --sidebar-bg: #1e293b;
+            --bg-light: #f1f5f9;
+            --card-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1);
+        }
+        body { background-color: var(--bg-light); font-family: 'Segoe UI', system-ui, sans-serif; }
+        
+        /* Premium Login Screen */
+        .login-wrapper { height: 100vh; display: flex; align-items: center; justify-content: center; background: linear-gradient(135deg, #f1f5f9 0%, #e2e8f0 100%); }
+        .login-card { max-width: 420px; width: 100%; padding: 40px; border-radius: 16px; box-shadow: var(--card-shadow); background: white; border-top: 4px solid var(--primary); }
+        
+        /* Dashboard Layout */
+        .dashboard-container { display: flex; min-height: 100vh; }
+        .sidebar { width: 280px; background-color: var(--sidebar-bg); color: #cbd5e1; padding: 24px; display: flex; flex-direction: column; }
+        .sidebar-brand { color: white; font-size: 1.25rem; font-weight: 700; margin-bottom: 40px; display: flex; align-items: center; gap: 10px; }
+        .nav-item { padding: 12px 16px; border-radius: 8px; margin-bottom: 8px; cursor: pointer; transition: background 0.2s; display: flex; align-items: center; gap: 12px; font-weight: 500; }
+        .nav-item:hover, .nav-item.active { background-color: #334155; color: white; }
+        
+        .main-content { flex-grow: 1; padding: 40px; overflow-y: auto; height: 100vh; }
+        
+        /* Premium Cards & Inputs */
+        .card { border: none; border-radius: 12px; box-shadow: var(--card-shadow); margin-bottom: 24px; background: white; }
+        .card-header { background-color: white; border-bottom: 1px solid #e2e8f0; font-weight: 600; padding: 20px 24px; border-radius: 12px 12px 0 0 !important; font-size: 1.1rem; }
+        .form-control { border-radius: 8px; border: 1px solid #cbd5e1; padding: 10px 15px; background-color: #f8fafc; }
+        .form-control:focus { box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.15); border-color: var(--primary); background-color: white; }
+        .btn-primary { background-color: var(--primary); border: none; border-radius: 8px; padding: 12px 20px; font-weight: 600; }
+        .btn-primary:hover { background-color: #1d4ed8; }
+        
+        /* Small details */
+        .project-card { border: 1px solid #e2e8f0; border-radius: 8px; padding: 16px; transition: border-color 0.2s; }
+        .project-card:hover { border-color: #94a3b8; }
+    </style>
+</head>
+<body>
+
+    <div id="loginScreen" class="login-wrapper">
+        <div class="login-card text-center">
+            <div class="mb-4 text-primary">
+                <i class="bi bi-shield-lock-fill" style="font-size: 3rem;"></i>
+            </div>
+            <h4 class="mb-1 fw-bold">Enterprise Portal</h4>
+            <p class="text-muted small mb-4">Secure access for authorized contractors</p>
+            
+            <form id="loginForm">
+                <div class="mb-3 text-start">
+                    <label class="form-label small fw-bold text-muted">Contractor ID</label>
+                    <div class="input-group">
+                        <span class="input-group-text bg-light border-end-0"><i class="bi bi-person"></i></span>
+                        <input type="number" class="form-control border-start-0" id="loginId" placeholder="Enter ID" required>
+                    </div>
+                </div>
+                <div class="mb-4 text-start">
+                    <label class="form-label small fw-bold text-muted">Security Password</label>
+                    <div class="input-group">
+                        <span class="input-group-text bg-light border-end-0"><i class="bi bi-key"></i></span>
+                        <input type="password" class="form-control border-start-0" id="loginPassword" placeholder="••••••••" required>
+                    </div>
+                </div>
+                <button type="submit" class="btn btn-primary w-100 shadow-sm" id="loginBtn">Authenticate to Server</button>
+            </form>
+            <div id="loginAlert" class="alert alert-danger mt-3 d-none text-sm border-0 bg-danger text-white bg-opacity-75"></div>
+        </div>
+    </div>
+
+    <div id="secureDashboard" class="dashboard-container d-none">
+        
+        <div class="sidebar shadow-sm">
+            <div class="sidebar-brand">
+                <i class="bi bi-buildings-fill text-primary"></i> AI Monitor
+            </div>
+            <div class="nav-item active"><i class="bi bi-grid-1x2-fill"></i> Site Updates</div>
+            <div class="nav-item"><i class="bi bi-folder-fill"></i> My Projects</div>
+            <div class="nav-item"><i class="bi bi-receipt-cutoff"></i> Invoices</div>
+            
+            <div class="mt-auto border-top border-secondary pt-3">
+                <div class="d-flex align-items-center gap-3">
+                    <div class="bg-primary text-white rounded-circle d-flex align-items-center justify-content-center" style="width: 40px; height: 40px; font-weight: bold;">
+                        <i class="bi bi-person-fill"></i>
+                    </div>
+                    <div>
+                        <div class="fw-bold text-white" id="contractorNameDisplay" style="font-size: 0.9rem;"></div>
+                        <div class="small text-muted" style="font-size: 0.8rem;">Active Session</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="main-content">
+            <div class="d-flex justify-content-between align-items-center mb-4">
+                <h2 class="fw-bold mb-0">Project Dashboard</h2>
+                <a href="index.html" class="btn btn-outline-secondary btn-sm"><i class="bi bi-box-arrow-left"></i> Sign Out</a>
+            </div>
+
+            <div class="row">
+                
+                <div class="col-lg-5 mb-4">
+                    <div class="card h-100">
+                        <div class="card-header d-flex align-items-center gap-2">
+                            <i class="bi bi-cloud-arrow-up-fill text-primary"></i> Submit Site Data
+                        </div>
+                        <div class="card-body p-4">
+                            <form id="uploadForm">
+                                <div class="row">
+                                    <div class="col-6 mb-3">
+                                        <label class="form-label small fw-bold text-muted">Project ID</label>
+                                        <input type="number" class="form-control" id="projectId" placeholder="e.g. 1" required>
+                                    </div>
+                                    <div class="col-6 mb-3">
+                                        <label class="form-label small fw-bold text-muted">Stage ID</label>
+                                        <input type="number" class="form-control" id="stageId" value="1" required>
+                                    </div>
+                                </div>
+                                
+                                <div class="mb-3">
+                                    <label class="form-label small fw-bold text-muted">Claimed Progress (%)</label>
+                                    <input type="number" class="form-control" id="claimedProgress" placeholder="0-100" required>
+                                </div>
+                                <div class="mb-3">
+                                    <label class="form-label small fw-bold text-muted">Cost Incurred Today (₹)</label>
+                                    <input type="number" class="form-control" id="costIncurred" placeholder="₹ Amount" required>
+                                </div>
+                                
+                                <hr class="my-4">
+                                
+                                <div class="mb-3">
+                                    <label class="form-label small fw-bold text-primary"><i class="bi bi-camera-fill"></i> Real-time Site Image</label>
+                                    <input type="file" class="form-control" id="siteImage" accept="image/*" required>
+                                    <small class="text-muted" style="font-size: 0.75rem;">GPS EXIF data required for AI verification.</small>
+                                </div>
+                                <div class="mb-4 bg-light p-3 rounded border">
+                                    <label class="form-label small fw-bold text-warning-emphasis"><i class="bi bi-file-earmark-pdf-fill"></i> Financial Invoice (Optional)</label>
+                                    <input type="file" class="form-control" id="billImage" accept="image/*,application/pdf">
+                                </div>
+                                
+                                <input type="hidden" id="uploadedBy">
+                                <button type="submit" class="btn btn-primary w-100 shadow-sm" id="submitBtn">
+                                    <i class="bi bi-robot"></i> Run AI Verification
+                                </button>
+                            </form>
+                            <div id="resultAlert" class="alert mt-3 d-none shadow-sm" role="alert"></div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="col-lg-7">
+                    <div class="card h-100">
+                        <div class="card-header d-flex align-items-center gap-2">
+                            <i class="bi bi-activity text-success"></i> Active Portfolios
+                        </div>
+                        <div class="card-body p-4">
+                            <div id="projectsContainer">
+                                <div class="text-center text-muted my-5">
+                                    <div class="spinner-border spinner-border-sm text-primary mb-2" role="status"></div>
+                                    <p>Syncing secure database...</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+        </div>
+    </div>
+
+    <script src="script.js"></script>
+</body>
+</html>
