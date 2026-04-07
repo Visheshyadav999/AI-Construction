@@ -30,7 +30,7 @@ function handleGoogleLogin(response) {
 async function loadPublicProjects() {
     const container = document.getElementById('publicProjectsContainer');
     try {
-        const response = await fetch(`${API_URL}/api/projects`);
+        const response = await fetch(`${API_URL}/api/projects/public`);
         const result = await response.json();
         
         if (result.status === "success") {
@@ -83,7 +83,7 @@ async function loadTimeline(projectId, projectName) {
             
             result.data.forEach(update => {
                 const billButton = update.bill_image_path 
-                    ? `<a href="/${update.bill_image_path}" target="_blank" class="btn btn-sm btn-outline-warning mt-2">📄 View Invoice</a>` 
+                    ? `<a href="${update.bill_image_path}" target="_blank" class="btn btn-sm btn-outline-warning mt-2">📄 View Invoice</a>` 
                     : `<span class="badge bg-secondary mt-2">No Bill Attached</span>`;
 
                 const html = `
@@ -94,7 +94,7 @@ async function loadTimeline(projectId, projectName) {
                         </div>
                         <div class="row">
                             <div class="col-md-5">
-                                <img src="/${update.image_file_path}" class="img-fluid rounded border">
+                                <img src="${update.image_file_path}" class="img-fluid rounded border">
                             </div>
                             <div class="col-md-7">
                                 <p class="mb-1"><strong>Progress Claimed:</strong> ${update.claimed_progress}%</p>
