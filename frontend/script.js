@@ -37,8 +37,8 @@ document.getElementById('loginForm').addEventListener('submit', async (e) => {
             // Secretly save their ID into the hidden input for the Upload Form
             document.getElementById('uploadedBy').value = loginIdRaw;
             
-            // If you have a function to load projects, you would call it here!
-            // loadContractorProjects(loginIdRaw); 
+            // --- NEW: TRIGGER THE SECURE PROJECT LOADER ---
+            loadContractorProjects(loginIdRaw); 
             
         } else {
             // Show the red error box
