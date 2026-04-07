@@ -113,7 +113,9 @@
                                 <div class="row">
                                     <div class="col-6 mb-3">
                                         <label class="form-label small fw-bold text-muted">Project ID</label>
-                                        <input type="number" class="form-control" id="projectId" placeholder="e.g. 1" required>
+                                        <select class="form-select" id="projectId" name="project_id" required>
+                                            <option value="" disabled selected>Loading your assigned projects...</option>
+                                        </select>
                                     </div>
                                     <div class="col-6 mb-3">
                                         <label class="form-label small fw-bold text-muted">Stage ID</label>
