@@ -161,3 +161,32 @@ async function runMLPrediction(projectId) {
         resultDiv.innerHTML = `<span class="text-danger">ML Engine Error</span>`;
     }
 }
+// --- SECURE PROJECT LOADER ---
+// This fetches ONLY the projects assigned to the logged-in contractor
+async function loadContractorProjects(contractorId) {
+    try {
+        // We hit Endpoint #2 on your Python server!
+        const response = await fetch(`/api/projects/contractor/${contractorId}`);
+        const result = await response.json();
+        
+        const projectDropdown = document.getElementById('projectId');
+        
+        if (result.status === "success") {
+            // Clear the "Loading..." text
+            projectDropdown.innerHTML = '<option value="" disabled selected>Select an assigned project...</option>';
+            
+            // Loop through their specific projects and add them to the dropdown
+            result.data.forEach(project => {
+                projectDropdown.innerHTML += `
+                    <option value="${project.project_id}">
+                        ${project.project_name} (Budget: ₹${project.estimated_budget.toLocaleString()})
+                    </option>
+                `;
+            });
+        } else {
+            projectDropdown.innerHTML = '<option value="" disabled>Error loading projects</option>';
+        }
+    } catch (error) {
+        console.error("Failed to load secure projects:", error);
+    }
+}
