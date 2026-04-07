@@ -1,22 +1,13 @@
 const API_URL = ""; 
-let currentChart = null; // Stores the active graph
+let currentChart = null; 
 
-// --- 1. Handle Google Login (Simulated for Local Dev) ---
-// Note for Evaluators: In production, this button connects to the Google Identity OAuth API
-// --- 1. Real Google OAuth Callback ---
 function handleGoogleLogin(response) {
-    // Decode the secure JWT token sent back from Google
     const jwtToken = response.credential;
     const payload = JSON.parse(atob(jwtToken.split('.')[1]));
-    
-    // Grab the user's real data from Google
     const userFullName = payload.name;
     const userEmail = payload.email;
     const userPicture = payload.picture;
-
     console.log(`Successfully verified via Google: ${userEmail}`);
-
-    // Update the UI with their real Google Profile
     const loginScreen = document.getElementById('publicLoginScreen');
     loginScreen.innerHTML = `
         <div class="row justify-content-center mt-5">
@@ -28,8 +19,6 @@ function handleGoogleLogin(response) {
             </div>
         </div>
     `;
-
-    // Wait 2 seconds so they can see the cool success screen, then load the dashboard
     setTimeout(() => {
         loginScreen.classList.add('d-none');
         document.getElementById('publicDashboard').classList.remove('d-none');
@@ -47,7 +36,6 @@ async function loadPublicProjects() {
         if (result.status === "success") {
             container.innerHTML = ""; 
             result.data.forEach(project => {
-                // Clickable card to load the timeline
                 const html = `
                     <div class="border rounded p-3 mb-3 bg-light" style="cursor: pointer;" onclick="loadTimeline(${project.project_id}, '${project.project_name}')">
                         <h5>${project.project_name}</h5>
@@ -66,8 +54,6 @@ async function loadPublicProjects() {
     }
 }
 
-// --- 3. Load the Timeline & Bills ---
-// --- 3. Load the Timeline & Draw the Graph ---
 async function loadTimeline(projectId, projectName) {
     const container = document.getElementById('timelineContainer');
     container.innerHTML = `<p class="text-center">Fetching highly secure data for ${projectName}...</p>`;
@@ -77,9 +63,6 @@ async function loadTimeline(projectId, projectName) {
         const result = await response.json();
         
         if (result.status === "success" && result.data.length > 0) {
-            
-            // --- NEW: GRAPH DATA PREPARATION ---
-            // The database sends data from newest to oldest. We need it oldest to newest for a graph!
             const chartData = [...result.data].reverse(); 
             
             const labels = [];
@@ -96,8 +79,6 @@ async function loadTimeline(projectId, projectName) {
             });
 
             drawChart(labels, progressData, costData);
-            // -----------------------------------
-
             container.innerHTML = `<h5 class="mb-4">${projectName} Activity Log</h5>`;
             
             result.data.forEach(update => {
@@ -181,7 +162,7 @@ function drawChart(labels, progressData, costData) {
                     type: 'linear',
                     position: 'right',
                     title: { display: true, text: 'Rupees (₹)' },
-                    grid: { drawOnChartArea: false } // Keeps the grid clean
+                    grid: { drawOnChartArea: false } 
                 }
             }
         }
