@@ -1,4 +1,5 @@
 const API_URL = ""; 
+
 document.getElementById('loginForm').addEventListener('submit', async (e) => {
     e.preventDefault();
     
@@ -17,7 +18,6 @@ document.getElementById('loginForm').addEventListener('submit', async (e) => {
             headers: {
                 'Content-Type': 'application/json'
             },
-            // THE FIX: parseInt() forces the text "2" into the math number 2
             body: JSON.stringify({ 
                 user_id: parseInt(loginIdRaw), 
                 password: loginPassword 
@@ -37,8 +37,8 @@ document.getElementById('loginForm').addEventListener('submit', async (e) => {
             // Secretly save their ID into the hidden input for the Upload Form
             document.getElementById('uploadedBy').value = loginIdRaw;
             
-            // --- NEW: TRIGGER THE SECURE PROJECT LOADER ---
-            loadContractorProjects(loginIdRaw); 
+            // 🔥 THE FIX: Trigger the unified loader to build the entire dashboard
+            loadContractorDashboard(loginIdRaw); 
             
         } else {
             // Show the red error box
@@ -53,39 +53,58 @@ document.getElementById('loginForm').addEventListener('submit', async (e) => {
     }
 });
 
-// --- 2. Fetch and Display Projects ---
-async function loadProjects() {
+// 🔥 THE FIX: Unified function to securely load BOTH the Dropdown AND the Right Panel
+async function loadContractorDashboard(contractorId) {
     const container = document.getElementById('projectsContainer');
+    const projectDropdown = document.getElementById('projectId');
+
     try {
-        const response = await fetch(`${API_URL}/api/projects`);
+        // Fetch ONLY the projects assigned to this specific contractor
+        const response = await fetch(`/api/projects/contractor/${contractorId}`);
         const result = await response.json();
         
         if (result.status === "success") {
-            container.innerHTML = ""; 
-            result.data.forEach(project => {
-                const html = `
-                    <div class="border rounded p-3 mb-3 bg-white">
-                        <h5>${project.project_name} (ID: ${project.project_id})</h5>
-                        <p class="mb-1"><strong>Client:</strong> ${project.client_name} | <strong>Contractor:</strong> ${project.contractor_name}</p>
-                        <p class="mb-1"><strong>Budget:</strong> ₹${project.estimated_budget} | <strong>Spent:</strong> ₹${project.actual_spent}</p>
-                        <div class="progress mt-2 mb-3" style="height: 20px;">
-                            <div class="progress-bar ${project.health_score < 50 ? 'bg-danger' : 'bg-success'}" 
-                                 role="progressbar" style="width: ${project.health_score}%;" 
-                                 aria-valuenow="${project.health_score}" aria-valuemin="0" aria-valuemax="100">
-                                Health Score: ${project.health_score}%
+            
+            // 1. Populate the Upload Dropdown
+            if (projectDropdown) {
+                projectDropdown.innerHTML = '<option value="" disabled selected>Select an assigned project...</option>';
+                result.data.forEach(project => {
+                    projectDropdown.innerHTML += `
+                        <option value="${project.project_id}">
+                            ${project.project_name} (Budget: ₹${project.estimated_budget.toLocaleString()})
+                        </option>
+                    `;
+                });
+            }
+
+            // 2. Populate the "Active Portfolios" Right Panel
+            if (container) {
+                container.innerHTML = ""; 
+                result.data.forEach(project => {
+                    const html = `
+                        <div class="border rounded p-3 mb-3 bg-white shadow-sm">
+                            <h5>${project.project_name}</h5>
+                            <p class="mb-1 text-muted">Project ID: ${project.project_id}</p>
+                            <p class="mb-1"><strong>Budget:</strong> ₹${project.estimated_budget.toLocaleString()} | <strong>Spent:</strong> ₹${project.actual_spent.toLocaleString()}</p>
+                            <div class="progress mt-2 mb-3" style="height: 20px;">
+                                <div class="progress-bar ${project.health_score < 50 ? 'bg-danger' : 'bg-success'}" 
+                                     role="progressbar" style="width: ${project.health_score}%;" 
+                                     aria-valuenow="${project.health_score}" aria-valuemin="0" aria-valuemax="100">
+                                    Health Score: ${project.health_score}%
+                                </div>
                             </div>
+                            <button class="btn btn-sm btn-outline-primary w-100" onclick="runMLPrediction(${project.project_id})">
+                                🔮 Run ML Cost Prediction
+                            </button>
+                            <div id="mlResult-${project.project_id}" class="mt-2 text-center text-primary fw-bold"></div>
                         </div>
-                        <button class="btn btn-sm btn-outline-primary w-100" onclick="runMLPrediction(${project.project_id})">
-                            🔮 Run ML Cost Prediction
-                        </button>
-                        <div id="mlResult-${project.project_id}" class="mt-2 text-center text-primary fw-bold"></div>
-                    </div>
-                `;
-                container.innerHTML += html;
-            });
+                    `;
+                    container.innerHTML += html;
+                });
+            }
         }
     } catch (error) {
-        container.innerHTML = `<p class="text-danger">Error connecting to server.</p>`;
+        if(container) container.innerHTML = `<p class="text-danger">Error loading secure dashboard.</p>`;
     }
 }
 
@@ -95,6 +114,7 @@ document.getElementById('uploadForm').addEventListener('submit', async function(
     
     const submitBtn = document.getElementById('submitBtn');
     const resultAlert = document.getElementById('resultAlert');
+    const contractorId = document.getElementById('uploadedBy').value;
     
     submitBtn.innerText = "Processing Image via AI...";
     submitBtn.disabled = true;
@@ -102,16 +122,18 @@ document.getElementById('uploadForm').addEventListener('submit', async function(
     const formData = new FormData();
     formData.append('project_id', document.getElementById('projectId').value);
     formData.append('stage_id', document.getElementById('stageId').value);
-    formData.append('uploaded_by', document.getElementById('uploadedBy').value);
+    formData.append('uploaded_by', contractorId);
     formData.append('claimed_progress', document.getElementById('claimedProgress').value);
     formData.append('cost_incurred_today', document.getElementById('costIncurred').value);
-    formData.append('image', document.getElementById('siteImage').files[0]);
+    
+    // 🔥 THE FIX: Changed 'image' to 'site_image' to match your FastAPI server!
+    formData.append('site_image', document.getElementById('siteImage').files[0]);
     
     const billFile = document.getElementById('billImage').files[0];
     if (billFile) formData.append('bill_image', billFile);
 
     try {
-        const response = await fetch(`${API_URL}/api/updates`, {
+        const response = await fetch(`/api/updates`, {
             method: 'POST',
             body: formData
         });
@@ -119,26 +141,24 @@ document.getElementById('uploadForm').addEventListener('submit', async function(
         const result = await response.json();
         resultAlert.classList.remove('d-none', 'alert-success', 'alert-danger', 'alert-warning');
         
-        if (result.status === "security_rejected") {
-            resultAlert.classList.add('alert-danger');
-            resultAlert.innerHTML = `<strong>🚨 SECURITY BREACH PREVENTED:</strong> ${result.message}`;
-        } else if (result.ai_conclusion === "Verified") {
+        if (response.ok) {
             resultAlert.classList.add('alert-success');
-            resultAlert.innerHTML = `<strong>✅ Success!</strong> Image verified by AI and Data saved.`;
-        } else if (result.ai_conclusion === "Flagged") {
-            resultAlert.classList.add('alert-warning');
-            resultAlert.innerHTML = `<strong>⚠️ Warning:</strong> AI flagged this image for low structural density!`;
+            resultAlert.innerHTML = `<strong>✅ Success!</strong> ${result.message || "Data saved."}`;
+        } else {
+            resultAlert.classList.add('alert-danger');
+            resultAlert.innerHTML = `<strong>🚨 Error:</strong> ${result.detail || "Upload failed."}`;
         }
         
-        loadProjects();
+        // Refresh the dashboard with the new data
+        loadContractorDashboard(contractorId);
         document.getElementById('uploadForm').reset();
         
         setTimeout(() => { resultAlert.classList.add('d-none'); }, 6000);
 
     } catch (error) {
-        resultAlert.classList.remove('d-none');
+        resultAlert.classList.remove('d-none', 'alert-success');
         resultAlert.classList.add('alert-danger');
-        resultAlert.innerHTML = `Error uploading data. Check terminal.`;
+        resultAlert.innerHTML = `Error uploading data. Check console.`;
     } finally {
         submitBtn.innerText = "Upload & Verify via AI";
         submitBtn.disabled = false;
@@ -150,7 +170,7 @@ async function runMLPrediction(projectId) {
     const resultDiv = document.getElementById(`mlResult-${projectId}`);
     resultDiv.innerHTML = "<em>Running Scikit-Learn Model...</em>";
     try {
-        const response = await fetch(`${API_URL}/api/predict/${projectId}`);
+        const response = await fetch(`/api/predict/${projectId}`);
         const result = await response.json();
         if (result.status === "success") {
             resultDiv.innerHTML = `🔮 AI Prediction: Final Cost will be ₹${result.predicted_final_cost.toLocaleString()}`;
@@ -159,34 +179,5 @@ async function runMLPrediction(projectId) {
         }
     } catch (error) {
         resultDiv.innerHTML = `<span class="text-danger">ML Engine Error</span>`;
-    }
-}
-// --- SECURE PROJECT LOADER ---
-// This fetches ONLY the projects assigned to the logged-in contractor
-async function loadContractorProjects(contractorId) {
-    try {
-        // We hit Endpoint #2 on your Python server!
-        const response = await fetch(`/api/projects/contractor/${contractorId}`);
-        const result = await response.json();
-        
-        const projectDropdown = document.getElementById('projectId');
-        
-        if (result.status === "success") {
-            // Clear the "Loading..." text
-            projectDropdown.innerHTML = '<option value="" disabled selected>Select an assigned project...</option>';
-            
-            // Loop through their specific projects and add them to the dropdown
-            result.data.forEach(project => {
-                projectDropdown.innerHTML += `
-                    <option value="${project.project_id}">
-                        ${project.project_name} (Budget: ₹${project.estimated_budget.toLocaleString()})
-                    </option>
-                `;
-            });
-        } else {
-            projectDropdown.innerHTML = '<option value="" disabled>Error loading projects</option>';
-        }
-    } catch (error) {
-        console.error("Failed to load secure projects:", error);
     }
 }
