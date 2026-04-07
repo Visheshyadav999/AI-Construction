@@ -61,12 +61,18 @@ def get_contractor_projects(contractor_id: int):
     conn.close()
     return {"status": "success", "data": projects}
 
-# 3. Get Public Projects
+
+# 3. Get Public Projects (Upgraded with SQL JOIN)
 @app.get("/api/projects/public")
 def get_public_projects():
     conn = get_db_connection()
     cursor = get_cursor(conn)
-    cursor.execute("SELECT * FROM Projects")
+    cursor.execute('''
+        SELECT Projects.*, Users.name AS contractor_name 
+        FROM Projects 
+        LEFT JOIN Users ON Projects.contractor_id = Users.user_id
+    ''')
+    
     projects = cursor.fetchall()
     conn.close()
     return {"status": "success", "data": projects}
