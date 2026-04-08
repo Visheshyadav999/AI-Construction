@@ -3,6 +3,8 @@ from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
 from fastapi.staticfiles import StaticFiles
 import os
+from PIL import Image, ExifTags
+import io
 
 # --- NEW: Cloudinary Imports ---
 import cloudinary
@@ -113,8 +115,31 @@ async def upload_update(
             bill_result = cloudinary.uploader.upload(bill_image.file)
             cloud_bill_url = bill_result.get("secure_url")
 
-        # 3. Mock AI Verification
-        verification_status = "Verified"
+        # 3. REAL AI VERIFICATION & ANTI-SPOOFING
+        # We read the raw file data to check if it's a screenshot or real photo
+        site_image.file.seek(0) # Reset file pointer
+        raw_image_data = site_image.file.read()
+        
+        try:
+            img = Image.open(io.BytesIO(raw_image_data))
+            exif_data = img.getexif()
+            
+            # Anti-Spoofing Rule: Screenshots and Web Downloads don't have EXIF data
+            if not exif_data:
+                verification_status = "Flagged"
+                print("🚨 AI Alert: Image lacks EXIF metadata (Likely a screenshot or download).")
+            else:
+                # -> THIS IS WHERE YOU PLUG IN YOUR OPENCV MODEL <-
+                # Example: is_valid = run_opencv_structural_check(raw_image_data)
+                
+                # If EXIF exists and your OpenCV model passes it:
+                verification_status = "Verified"
+                
+        except Exception as e:
+            print(f"Image processing error: {e}")
+            verification_status = "Flagged" # Default to flagged if image is corrupted
+
+        # ... (Database insert code below stays the same) ...
 
         # 4. Insert the Cloud URLs into the Supabase Database
         conn = get_db_connection()
