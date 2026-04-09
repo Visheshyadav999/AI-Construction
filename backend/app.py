@@ -123,24 +123,23 @@ async def upload_update(
         try:
             img = Image.open(io.BytesIO(raw_image_data))
             exif_data = img.getexif()
+            is_real_camera = False
+            if exif_data:
+                for tag_id in exif_data:
+                    tag_name = ExifTags.TAGS.get(tag_id, tag_id)
+                    if tag_name in ['DateTimeOriginal', 'Make', 'Model', 'GPSInfo']:
+                        is_real_camera = True
+                        break
             
-            # Anti-Spoofing Rule: Screenshots and Web Downloads don't have EXIF data
-            if not exif_data:
+            if not is_real_camera:
                 verification_status = "Flagged"
-                print("🚨 AI Alert: Image lacks EXIF metadata (Likely a screenshot or download).")
+                print("🚨 AI Alert: Image lacks physical camera hardware tags!")
             else:
-                # -> THIS IS WHERE YOU PLUG IN YOUR OPENCV MODEL <-
-                # Example: is_valid = run_opencv_structural_check(raw_image_data)
-                
-                # If EXIF exists and your OpenCV model passes it:
                 verification_status = "Verified"
                 
         except Exception as e:
             print(f"Image processing error: {e}")
-            verification_status = "Flagged" # Default to flagged if image is corrupted
-
-        # ... (Database insert code below stays the same) ...
-
+            verification_status = "Flagged"
         # 4. Insert the Cloud URLs into the Supabase Database
         conn = get_db_connection()
         cursor = get_cursor(conn)
